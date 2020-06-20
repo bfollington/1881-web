@@ -1,0 +1,33 @@
+import { Vec2d, Vec } from '../types'
+
+import { Scene, Structs } from 'phaser'
+
+export type NextNumberT = ReturnType<typeof NextNumber>
+
+function generateRandomInt(cap: number) {
+  return Math.floor(Math.random() * (cap - 1)) + 1
+}
+
+function update(c: NextNumberT) {
+  c.obj.setPosition(c.pos.x, c.pos.y)
+  c.obj.text = `Next: ${c.number}`
+}
+
+function generate(c: NextNumberT) {
+  c.number = generateRandomInt(6)
+}
+
+export const NextNumber = (s: Scene, pos: Vec2d = Vec(0, 0)) => {
+  const c = s.add.text(pos.x, pos.y, '')
+  c.setFill('blue')
+
+  const num = {
+    pos,
+    update,
+    generate,
+    obj: c,
+    number: generateRandomInt(6),
+  }
+
+  return num
+}
