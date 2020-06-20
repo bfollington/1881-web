@@ -1,7 +1,7 @@
 {
-  "name": "twopm-phaser-template",
+  "name": "1881-phaser",
   "version": "1.0.0",
-  "description": "TwoPM Phaser Typescript template",
+  "description": "1881 Web Version",
   "main": "src/game.ts",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nollup -c --hot --content-base public",
@@ -9,12 +9,7 @@
     "start": "serve dist",
     "push": "yarn build && butler push dist twopm/set-phasers-to-fun:web"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bfollington/twopm-phaser.git"
-  },
-  "author": "Ben Follington",
-  "license": "MIT",
+  "author": "TwoPM Studios",
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.0",
     "@rollup/plugin-node-resolve": "^7.1.3",

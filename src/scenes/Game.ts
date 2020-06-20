@@ -1,74 +1,41 @@
-import { State, Action } from '../state'
-import { apply } from '../apply'
 import { Vec } from '../types'
-import { EntityMap, ComponentMap, addEntity } from '../entity'
-import { name } from '../components/index'
-import { findEntityByName } from '../components/name'
-import { EventStream, makeEventStream } from '../events'
-import {
-  GameEvent,
-  sceneInitCompleted,
-  userMouseClicked,
-  GameEventType,
-  filterEvent,
-  colorToggled,
-} from '../events/game'
-import { Subscription, pipe } from 'rxjs'
-import { filter } from 'rxjs/operators'
-import { GameObjects } from 'phaser'
+import { GameObjects, Scene } from 'phaser'
+import { Board, initBoard, zones, map, iter, read, write } from './board'
+import { CursorT, Cursor } from './cursor'
+import { GRID } from '../const'
+import { anaemia, pallor } from '../colors'
 
-const listen = (fn: () => Subscription, list: Subscription[]) => {
-  list.push(fn())
+function generateRandomInt(cap: number) {
+  return Math.floor(Math.random() * (cap - 1)) + 1
 }
 
 export default class Demo extends Phaser.Scene {
-  actions: Action[] = []
-  state: State = {
-    timer: 0,
-    orbitPos: Vec(0, 0),
-    color: 'blue',
-  }
-  entities: EntityMap = {}
-  components: ComponentMap = {}
-  msgs: EventStream<GameEvent> = makeEventStream<GameEvent>('events')
-  subscriptions: Subscription[] = []
+  board = initBoard(0)
+  cursor: CursorT = null
+  nextNumber: number = generateRandomInt(6)
+  texts: Board<GameObjects.Text>
+  nextNum: GameObjects.Text
+  checkerBoard: Board<GameObjects.Graphics>
 
   constructor() {
     super('GameScene')
+    console.log(this.board, zones)
   }
 
   init() {
-    let s = this.msgs.stream
-
-    listen(
-      () =>
-        s.subscribe((x) => {
-          console.log('LOG', x)
-        }),
-      this.subscriptions
-    )
-
-    listen(
-      () =>
-        s.pipe(filterEvent<GameEvent>('USER_MOUSE_CLICKED')).subscribe((x) => {
-          this.msgs.emit(colorToggled())
-        }),
-      this.subscriptions
-    )
-
-    listen(
-      () =>
-        s.pipe(filterEvent<GameEvent>('COLOR_TOGGLED')).subscribe((x) => {
-          this.actions.push({
-            type: 'toggle_color',
-          })
-        }),
-      this.subscriptions
-    )
-
-    this.events.on('destroy', () => this.subscriptions.forEach((s) => s.unsubscribe()))
-
-    this.input.on('pointerup', () => this.msgs.emit(userMouseClicked()))
+    this.input.on('pointerup', () => (this.cursor.pos.x += 1))
+    this.input.keyboard.on('keydown-RIGHT', () => (this.cursor.pos.x += 1))
+    this.input.keyboard.on('keydown-LEFT', () => (this.cursor.pos.x -= 1))
+    this.input.keyboard.on('keydown-UP', () => (this.cursor.pos.y -= 1))
+    this.input.keyboard.on('keydown-DOWN', () => (this.cursor.pos.y += 1))
+    this.input.keyboard.on('keydown-SPACE', () => {
+      if (read(this.board, this.cursor.pos) > 0) {
+        // Invalid
+      } else {
+        write(this.board, this.cursor.pos, this.nextNumber)
+        this.nextNumber = generateRandomInt(6)
+      }
+    })
   }
 
   preload() {
@@ -76,61 +43,43 @@ export default class Demo extends Phaser.Scene {
   }
 
   create() {
-    let twopm = this.add.image(0, 0, 'twopm')
-    let twopmSmall = this.add.image(0, 0, 'twopm')
-    twopmSmall.scale = 0.2
-    let container = this.add.container(281, 609 - 40, [twopm, twopmSmall])
-
-    addEntity(this.entities, this.components, twopm, [name('twopm')])
-    addEntity(this.entities, this.components, twopmSmall, [name('twopm-small')])
-    addEntity(this.entities, this.components, container, [name('container')])
-
-    this.tweens.add({
-      targets: container,
-      y: 609 + 40,
-      duration: 3000,
-      ease: 'Sine.inOut',
-      yoyo: true,
-      repeat: -1,
+    this.checkerBoard = map(this.board, (n, p) => {
+      const rect = this.add.graphics()
+      rect.fillStyle(0x00ff00, 1)
+      rect.fillRect(0, 0, GRID, GRID)
+      return rect
     })
 
-    this.msgs.emit(sceneInitCompleted())
-  }
-
-  logic(state: State): Action[] {
-    let radius = 180
-
-    // future: event loop
-    // events are dispatched and listeners are updated (rxjs backed)
-    // subscribers can emit events in response, handled synchronously
-    // subscribers have access to an addAction function to express indended side effects
-    // managers and supervisors can also recieve a poll here, letting them trigger actions
-    // aggregated actions are passed to apply etc.
-
-    this.actions.push({
-      type: 'timer_tick',
+    // map(this.board)((c) => console.log(c))
+    this.texts = map(this.board, (n, p) => {
+      const txt = this.add.text(GRID * p.x, GRID * p.y, `${n}`)
+      txt.setFill('red')
+      return txt
     })
 
-    this.actions.push({
-      type: 'update_position',
-      position: Vec(radius * Math.cos(state.timer), radius * Math.sin(state.timer)),
-    })
+    this.nextNum = this.add.text(530, 32, `Next Up: ${this.nextNumber}`)
+    this.nextNum.setFill('blue')
 
-    return this.actions
+    this.cursor = Cursor(this)
+
+    const game = []
+    iter(this.checkerBoard, (a) => game.push(a))
+    iter(this.texts, (a) => game.push(a))
+    game.push(this.nextNum)
+    game.push(this.cursor.gfx)
+
+    let container = this.add.container(32, 32, game)
   }
 
   update() {
-    let patch = this.logic(this.state)
-    this.state = apply(this.state)(patch)
-
-    // actions is mutated and cleared to reduce memory alloc
-    this.actions.length = 0
-    // console.log(this.state)
-
-    findEntityByName(this.entities, this.components, 'twopm-small').forEach((e) => {
-      ;(e as GameObjects.Image).tint = this.state.color === 'blue' ? 0x0000ff : 0xff0000
-      // Need more brain to understand Phaser types
-      ;(e as any).setPosition(this.state.orbitPos.x, this.state.orbitPos.y)
+    this.cursor.update(this.cursor)
+    iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
+    iter(this.checkerBoard, (c, p) => {
+      c.fillStyle((p.x + p.y) % 2 === 0 ? anaemia : pallor)
+      c.fillRect(0, 0, GRID, GRID)
+      c.setPosition(p.x * GRID, p.y * GRID)
     })
+    // TODO: gross
+    this.nextNum.text = `` + this.nextNumber
   }
 }

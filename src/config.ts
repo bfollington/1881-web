@@ -1,11 +1,11 @@
 export default {
   type: Phaser.AUTO,
   parent: 'game',
-  backgroundColor: '#000',
+  backgroundColor: '#F9F6F4',
   scale: {
-    width: 563,
-    height: 1218,
-    mode: Phaser.Scale.ScaleModes.FIT,
+    width: 640,
+    height: 640,
+    mode: Phaser.Scale.ScaleModes.NONE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 }

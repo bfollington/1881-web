@@ -1,0 +1,9 @@
+export const pallor = 0xf9f6f4
+export const anaemia = 0xf5e2e6
+export const congested = 0x987bd2
+export const plethoric = 0xcd6389
+export const cyanosis = 0x5ec8ec
+export const peach = 0xedb1ad
+export const bilious = 0x9fdc93
+export const bruised = 0x59599b
+export const jaundice = 0xffca5f
