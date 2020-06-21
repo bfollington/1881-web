@@ -1,5 +1,5 @@
 {
-  "name": "1881-phaser",
+  "name": "1881",
   "version": "1.0.0",
   "description": "1881 Web Version",
   "main": "src/game.ts",
@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development nollup -c --hot --content-base public",
     "build": "rimraf dist && cross-env NODE_ENV=production rollup -c",
     "start": "serve dist",
-    "push": "yarn build && butler push dist twopm/set-phasers-to-fun:web"
+    "push": "yarn build && butler push dist twopm/1881:web"
   },
   "author": "TwoPM Studios",
   "devDependencies": {
