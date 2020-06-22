@@ -68,13 +68,28 @@ export default class Demo extends Phaser.Scene {
       map(b, (n, p) => {
         const sprt = this.add.graphics()
         sprt.setPosition(p.x * GRID + 8, p.y * GRID + 8)
-        sprt.fillStyle(plethoric)
+        if (n != 0 ) {
+          sprt.fillStyle(plethoric)
         sprt.fillRoundedRect(0, 0, 72, 72, 8)
+        }
         sprt.fillStyle(pallor)
-        sprt.fillCircle(36,36,8)
-        sprt.fillCircle(20,20,8)
-        sprt.fillCircle(52,52,8)
-        return sprt
+        if (n == 1 || n == 3 || n == 5) {
+          sprt.fillCircle(36,36,8)
+        } 
+        if (n == 2 || n == 3 || n == 4 || n == 5 || n == 6) {
+          sprt.fillCircle(16, 16, 8)
+          sprt.fillCircle(56, 56, 8)
+        } 
+        if (n == 4 || n == 5 || n == 6) {
+          sprt.fillCircle(16, 56,8)
+          sprt.fillCircle(56, 16,8)
+        } 
+        if (n == 6) {
+          sprt.fillCircle(56, 36,8)
+          sprt.fillCircle(16, 36,8)
+          
+        }
+        return sprt   
       })
 
     this.spriteBoard = SpriteBoard(this.board)
