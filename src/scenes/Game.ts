@@ -44,7 +44,7 @@ export default class Demo extends Phaser.Scene {
 
   preload() {
     this.load.image('twopm', 'assets/twopm.png')
-    this.load.image('dice 1', 'assets/dice/1.png')
+    this.load.image('dice1', 'assets/dice/1.png')
     this.load.image('dice2', 'assets/dice/2.png')
     this.load.image('dice3', 'assets/dice/3.png')
     this.load.image('dice4', 'assets/dice/4.png')
@@ -119,6 +119,31 @@ export default class Demo extends Phaser.Scene {
     ;[this.cursor, this.nextNumber].map(runUpdate)
 
     iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
-    //iter(this.spriteBoard, (s, p) => (s. = `${this.board[p.x][p.y]}`))
+    iter(this.spriteBoard, (t, p) => 
+      { var n = this.board[p.x][p.y]
+        if (n != 0 ) {
+          t.fillStyle(plethoric)
+          t.fillRoundedRect(0, 0, 72, 72, 8)
+        }
+        
+        t.fillStyle(pallor)
+        if (n == 1 || n == 3 || n == 5) {
+          t.fillCircle(36,36,8)
+        } 
+        if (n == 2 || n == 3 || n == 4 || n == 5 || n == 6) {
+          t.fillCircle(16, 16, 8)
+          t.fillCircle(56, 56, 8)
+        } 
+        if (n == 4 || n == 5 || n == 6) {
+          t.fillCircle(16, 56,8)
+          t.fillCircle(56, 16,8)
+        } 
+        if (n == 6) {
+          t.fillCircle(56, 36,8)
+          t.fillCircle(16, 36,8)
+          
+        }
+      }
+    )
   }
 }
