@@ -1,4 +1,4 @@
-import { Vec } from '../types'
+import { Vec, Vec2d } from '../types'
 import { GameObjects, Scene } from 'phaser'
 import { Board, initBoard, zones, map, iter, read, write } from '../modules/board'
 import { CursorT, Cursor } from '../modules/cursor'
@@ -115,8 +115,17 @@ export default class Demo extends Phaser.Scene {
     let container = this.add.container(32, 32, game)
   }
 
+  scoreZone(zone: Vec2d[]) {
+    return zone
+      .map((p) => read(this.board, p)) // grab values from board
+      .reduce((accumulator, n) => accumulator + n) // sum them all up
+  }
+
   update() {
     ;[this.cursor, this.nextNumber].map(runUpdate)
+
+    const x = this.scoreZone(zones.c1)
+    console.log(x)
 
     iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
     iter(this.spriteBoard, (t, p) => {
