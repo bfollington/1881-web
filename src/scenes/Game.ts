@@ -5,6 +5,7 @@ import { CursorT, Cursor } from '../modules/cursor'
 import { GRID } from '../const'
 import { anaemia, pallor, plethoric } from '../colors'
 import { NextNumberT, NextNumber } from '../modules/nextNumber'
+import { TurnState } from '../modules/turn'
 
 // Util
 interface Updateable<T> {
@@ -23,6 +24,7 @@ export default class Demo extends Phaser.Scene {
   checkerBoard: Board<GameObjects.Graphics>
   spriteBoard: Board<GameObjects.Graphics>
   test: GameObjects.Image
+  turn: { turnEnded: (t: ...) => void; currentPlayer: "player1" | "player2" }
 
   constructor() {
     super('GameScene')
@@ -55,6 +57,8 @@ export default class Demo extends Phaser.Scene {
   }
 
   create() {
+    this.turn = TurnState(this, 'player1')
+
     const CheckerBoard = (b: Board<number>) =>
       map(b, (n, p) => {
         const rect = this.add.graphics()
