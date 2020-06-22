@@ -3,7 +3,7 @@ import { GameObjects, Scene } from 'phaser'
 import { Board, initBoard, zones, map, iter, read, write } from '../modules/board'
 import { CursorT, Cursor } from '../modules/cursor'
 import { GRID } from '../const'
-import { anaemia, pallor } from '../colors'
+import { anaemia, pallor, plethoric } from '../colors'
 import { NextNumberT, NextNumber } from '../modules/nextNumber'
 
 // Util
@@ -21,11 +21,10 @@ export default class Demo extends Phaser.Scene {
   nextNumber: NextNumberT = null
   texts: Board<GameObjects.Text>
   checkerBoard: Board<GameObjects.Graphics>
+  spriteBoard: Board<GameObjects.Graphics>
 
   constructor() {
-    super('GameScene')
-    console.log(this.board, zones)
-  }
+    super('GameScene')  }
 
   init() {
     this.input.on('pointerup', () => (this.cursor.pos.x += 1))
@@ -45,6 +44,12 @@ export default class Demo extends Phaser.Scene {
 
   preload() {
     this.load.image('twopm', 'assets/twopm.png')
+    this.load.image('dice 1', 'assets/dice/1.png')
+    this.load.image('dice2', 'assets/dice/2.png')
+    this.load.image('dice3', 'assets/dice/3.png')
+    this.load.image('dice4', 'assets/dice/4.png')
+    this.load.image('dice5', 'assets/dice/5.png')
+    this.load.image('dice6', 'assets/dice/6.png')
   }
 
   create() {
@@ -58,6 +63,21 @@ export default class Demo extends Phaser.Scene {
       })
 
     this.checkerBoard = CheckerBoard(this.board)
+
+    const SpriteBoard = (b: Board<number>) =>
+      map(b, (n, p) => {
+        const sprt = this.add.graphics()
+        sprt.setPosition(p.x * GRID + 8, p.y * GRID + 8)
+        sprt.fillStyle(plethoric)
+        sprt.fillRoundedRect(0, 0, 72, 72, 8)
+        sprt.fillStyle(pallor)
+        sprt.fillCircle(36,36,8)
+        sprt.fillCircle(20,20,8)
+        sprt.fillCircle(52,52,8)
+        return sprt
+      })
+
+    this.spriteBoard = SpriteBoard(this.board)
 
     const TextBoard = (b: Board<number>) =>
       map(b, (n, p) => {
@@ -73,6 +93,7 @@ export default class Demo extends Phaser.Scene {
     const game = []
     iter(this.checkerBoard, (a) => game.push(a))
     iter(this.texts, (a) => game.push(a))
+    iter(this.spriteBoard, (a) => game.push(a))
     game.push(this.nextNumber.obj)
     game.push(this.cursor.obj)
 
@@ -83,5 +104,6 @@ export default class Demo extends Phaser.Scene {
     ;[this.cursor, this.nextNumber].map(runUpdate)
 
     iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
+    //iter(this.spriteBoard, (s, p) => (s. = `${this.board[p.x][p.y]}`))
   }
 }
