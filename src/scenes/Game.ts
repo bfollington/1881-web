@@ -120,10 +120,10 @@ export default class Demo extends Phaser.Scene {
     this.texts = TextBoard(this.board)
 
     this.cursor = Cursor(this)
-    this.nextNumber = NextNumber(this, Vec(530, 32))
+    this.nextNumber = NextNumber(this, Vec(530, 0))
 
     const nums = [1, 2, 3, 4, 5, 6]
-    nums.map((i) => this.add.image(596, 50 + i * 80, `dice${i}`))
+    //nums.map((i) => this.add.image(596, 50 + i * 80, `dice${i}`))
 
     const game = []
     iter(this.checkerBoard, (a) => game.push(a))
@@ -144,9 +144,6 @@ export default class Demo extends Phaser.Scene {
 
   update() {
     ;[this.cursor, this.nextNumber].map(runUpdate)
-
-    const x = this.scoreZone(zones.c1)
-    console.log(x)
 
     iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
     iter(this.spriteBoard, (t, p) => {

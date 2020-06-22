@@ -1,6 +1,7 @@
 import { Vec2d, Vec } from '../types'
 
 import { Scene, Structs } from 'phaser'
+import { peach } from '../colors'
 
 export type NextNumberT = ReturnType<typeof NextNumber>
 
@@ -11,6 +12,7 @@ function generateRandomInt(cap: number) {
 function update(c: NextNumberT) {
   c.obj.setPosition(c.pos.x, c.pos.y)
   c.obj.text = `Next: ${c.number}`
+  c.img.setTexture(`dice${this.number}`)
 }
 
 function generate(c: NextNumberT) {
@@ -19,13 +21,16 @@ function generate(c: NextNumberT) {
 
 export const NextNumber = (s: Scene, pos: Vec2d = Vec(0, 0)) => {
   const c = s.add.text(pos.x, pos.y, '')
-  c.setFill('blue')
+  c.setFill(peach)
+
+  const img = s.add.image(580, 90, `dice${this.number}`)
 
   const num = {
     pos,
     update,
     generate,
     obj: c,
+    img: img,
     number: generateRandomInt(6),
   }
 
