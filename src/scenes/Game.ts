@@ -22,6 +22,7 @@ export default class Demo extends Phaser.Scene {
   texts: Board<GameObjects.Text>
   checkerBoard: Board<GameObjects.Graphics>
   spriteBoard: Board<GameObjects.Graphics>
+  test: GameObjects.Image
 
   constructor() {
     super('GameScene')
@@ -104,6 +105,8 @@ export default class Demo extends Phaser.Scene {
 
     this.cursor = Cursor(this)
     this.nextNumber = NextNumber(this, Vec(530, 32))
+
+    this.test = this.add.image(596, 596, 'dice1')
 
     const game = []
     iter(this.checkerBoard, (a) => game.push(a))
