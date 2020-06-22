@@ -106,7 +106,8 @@ export default class Demo extends Phaser.Scene {
     this.cursor = Cursor(this)
     this.nextNumber = NextNumber(this, Vec(530, 32))
 
-    this.test = this.add.image(596, 596, 'dice1')
+    const nums = [1, 2, 3, 4, 5, 6]
+    nums.map((i) => this.add.image(596, 50 + i * 80, `dice${i}`))
 
     const game = []
     iter(this.checkerBoard, (a) => game.push(a))
