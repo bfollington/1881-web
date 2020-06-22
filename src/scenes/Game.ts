@@ -33,11 +33,18 @@ export default class Demo extends Phaser.Scene {
 
   init() {
     //this.input.on('pointerup', () => (this.cursor.pos.x += 1))
-    this.input.keyboard.on('keydown-RIGHT', () => (this.cursor.pos.x += 1))
-    this.input.keyboard.on('keydown-LEFT', () => (this.cursor.pos.x -= 1))
-    this.input.keyboard.on('keydown-UP', () => (this.cursor.pos.y -= 1))
-    this.input.keyboard.on('keydown-DOWN', () => (this.cursor.pos.y += 1))
-    this.input.keyboard.on('keydown-SPACE', () => {
+    var spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    var upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
+    var downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)
+    var leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
+    var rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
+   
+    
+    rightKey.on('down', () => (this.cursor.pos.x += 1))
+    leftKey.on('down', () => (this.cursor.pos.x -= 1))
+    upKey.on('down', () => (this.cursor.pos.y -= 1))
+    downKey.on('down', () => (this.cursor.pos.y += 1))
+    spaceBar.on('down', () => {
       if (read(this.board, this.cursor.pos) > 0) {
         // Invalid
       } else {
