@@ -3,7 +3,7 @@ import { GameObjects, Scene } from 'phaser'
 import { Board, initBoard, zones, map, iter, read, write } from '../modules/board'
 import { CursorT, Cursor } from '../modules/cursor'
 import { GRID } from '../const'
-import { anaemia, pallor, plethoric } from '../colors'
+import { anaemia, pallor, plethoric, peach } from '../colors'
 import { NextNumberT, NextNumber } from '../modules/nextNumber'
 import { TurnState } from '../modules/turn'
 
@@ -23,15 +23,16 @@ export default class Demo extends Phaser.Scene {
   texts: Board<GameObjects.Text>
   checkerBoard: Board<GameObjects.Graphics>
   spriteBoard: Board<GameObjects.Graphics>
+  gridLines: GameObjects.Graphics
   test: GameObjects.Image
-  turn: { turnEnded: (t: ...) => void; currentPlayer: "player1" | "player2" }
+  turn: { turnEnded: (t: any) => void; currentPlayer: "player1" | "player2" }
 
   constructor() {
     super('GameScene')
   }
 
   init() {
-    this.input.on('pointerup', () => (this.cursor.pos.x += 1))
+    //this.input.on('pointerup', () => (this.cursor.pos.x += 1))
     this.input.keyboard.on('keydown-RIGHT', () => (this.cursor.pos.x += 1))
     this.input.keyboard.on('keydown-LEFT', () => (this.cursor.pos.x -= 1))
     this.input.keyboard.on('keydown-UP', () => (this.cursor.pos.y -= 1))
@@ -69,6 +70,17 @@ export default class Demo extends Phaser.Scene {
       })
 
     this.checkerBoard = CheckerBoard(this.board)
+
+    const gridLines = this.add.graphics()
+      gridLines.lineStyle(4, peach);
+      gridLines.beginPath();
+      gridLines.moveTo(264, 0);
+      gridLines.lineTo(264, 528);
+      gridLines.moveTo(0, 264);
+      gridLines.lineTo(528, 264);
+      gridLines.closePath();
+      gridLines.strokePath();
+    this.gridLines = gridLines
 
     const SpriteBoard = (b: Board<number>) =>
       map(b, (n, p) => {
@@ -119,8 +131,9 @@ export default class Demo extends Phaser.Scene {
     iter(this.spriteBoard, (a) => game.push(a))
     game.push(this.nextNumber.obj)
     game.push(this.cursor.obj)
+    game.push(this.gridLines)
 
-    let container = this.add.container(32, 32, game)
+    let container = this.add.container(8, 32, game)
   }
 
   scoreZone(zone: Vec2d[]) {
