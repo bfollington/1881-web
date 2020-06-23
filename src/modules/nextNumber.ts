@@ -2,6 +2,7 @@ import { Vec2d, Vec } from '../types'
 
 import { Scene, Structs } from 'phaser'
 import { peach } from '../colors'
+import { drawCustomDie } from '../modules/dice'
 
 export type NextNumberT = ReturnType<typeof NextNumber>
 
@@ -24,6 +25,7 @@ export const NextNumber = (s: Scene, pos: Vec2d = Vec(0, 0)) => {
   c.setFill(peach)
 
   const img = s.add.image(580, 90, `dice${this.number}`)
+//TODO: change this to `drawCustomDie` so the dice displays the colour of the player whose turn it is
 
   const num = {
     pos,
