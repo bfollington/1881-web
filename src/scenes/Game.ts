@@ -6,6 +6,7 @@ import { GRID } from '../const'
 import { anaemia, pallor, plethoric, peach } from '../colors'
 import { NextNumberT, NextNumber } from '../modules/nextNumber'
 import { TurnState } from '../modules/turn'
+import { GridLines, GridLinesT } from '../modules/grid'
 
 // Util
 interface Updateable<T> {
@@ -26,6 +27,7 @@ export default class Demo extends Phaser.Scene {
   gridLines: GameObjects.Graphics
   test: GameObjects.Image
   turn: { turnEnded: (t: any) => void; currentPlayer: "player1" | "player2" }
+  gridLines: GridLinesT
 
   constructor() {
     super('GameScene')
@@ -78,17 +80,8 @@ export default class Demo extends Phaser.Scene {
       })
 
     this.checkerBoard = CheckerBoard(this.board)
+    this.gridLines = GridLines(this, 4)
 
-    const gridLines = this.add.graphics()
-      gridLines.lineStyle(4, peach);
-      gridLines.beginPath();
-      gridLines.moveTo(264, 0);
-      gridLines.lineTo(264, 528);
-      gridLines.moveTo(0, 264);
-      gridLines.lineTo(528, 264);
-      gridLines.closePath();
-      gridLines.strokePath();
-    this.gridLines = gridLines
 
     const SpriteBoard = (b: Board<number>) =>
       map(b, (n, p) => {
