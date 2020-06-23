@@ -2,6 +2,7 @@ import { Vec2d, Vec } from '../types'
 
 import { Scene, Structs } from 'phaser'
 import { GRID } from '../const'
+import { peach } from '../colors'
 
 export type CursorT = ReturnType<typeof Cursor>
 
@@ -13,7 +14,7 @@ function update(c: CursorT) {
 
 export const Cursor = (s: Scene, start: Vec2d = Vec(0, 0)) => {
   const c = s.add.graphics()
-  c.lineStyle(1, 0x00ff00, 1)
+  c.lineStyle(2, peach, 1)
   c.strokeRect(0, 0, GRID, GRID)
 
   const cursor = {
