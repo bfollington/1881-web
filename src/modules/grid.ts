@@ -12,6 +12,10 @@ export const GridLines = (s: Scene, thickness: number) => {
   gridLines.lineTo(3 * GRID, 6 * GRID)
   gridLines.moveTo(0, 3 * GRID)
   gridLines.lineTo(6 * GRID, 3 * GRID)
+  gridLines.moveTo(0, 0)
+  gridLines.lineTo(0, 6 * GRID)
+  gridLines.lineTo(6 * GRID,6 * GRID)
+  gridLines.lineTo(6 * GRID,0)
   gridLines.closePath()
   gridLines.strokePath()
 
