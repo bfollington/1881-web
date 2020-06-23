@@ -4,7 +4,6 @@ import {plethoric, cyanosis, congested, bilious, grey} from '../colors'
 export type TurnStateT = ReturnType<typeof TurnState>
 
 function turnEnded(t: TurnStateT) {
-  console.log(t.currentPlayer)
   t.currentPlayer = advance(t.currentPlayer, t)
 }
 
