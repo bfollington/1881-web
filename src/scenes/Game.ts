@@ -147,11 +147,13 @@ export default class Demo extends Phaser.Scene {
   update() {
     const {
       board,
+      turn,
       cursor,
       nextNumber,
       rendering: { text },
     } = this.state
-    ;[cursor, nextNumber].map(runUpdate)
+    runUpdate(cursor)
+    nextNumber.update(nextNumber, turn)
     iter(text, (t, p) => (t.text = `${board[p.x][p.y].content}`))
   }
 }
