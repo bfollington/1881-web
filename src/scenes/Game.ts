@@ -20,41 +20,55 @@ function runUpdate<T>(a: T & Updateable<T>) {
   a.update(a)
 }
 
-export default class Demo extends Phaser.Scene {
-  board = initBoard<Cell>({ content: 0, placedBy: null })
-  cursor: CursorT = null
-  nextNumber: NextNumberT = null
-  texts: Board<GameObjects.Text>
-  checkerBoard: Board<GameObjects.Graphics>
-  spriteBoard: Board<GameObjects.Graphics>
-  test: GameObjects.Image
+export type GameState = {
+  board: Board<Cell>
+  rendering: {
+    text: Board<GameObjects.Text>
+    checker: Board<GameObjects.Graphics>
+    sprite: Board<GameObjects.Graphics>
+  }
+  cursor: CursorT
+  nextNumber: NextNumberT
   turn: TurnStateT
-  gridLines: GridLinesT
+  grid: GridLinesT
+}
+
+export default class Demo extends Phaser.Scene {
+  state: GameState
   inputEvents: GameInput
 
   constructor() {
     super('GameScene')
   }
 
+  getState() {
+    return this.state
+  }
+
   init() {
     this.inputEvents = initEvents(this)
+    const ev = this.inputEvents
 
-    this.inputEvents.cursorMoved.subscribe((c) => {
-      this.cursor.pos = this.cursor.pos.add(c)
+    ev.cursorMoved.subscribe((c) => {
+      const s = this.state
+
+      s.cursor.pos = s.cursor.pos.add(c)
     })
 
     // TODO: gross logic all in one place here, needs to be split up further
     // Ideal event chain: DiePlaced -> TurnEnded -> NextNumberGenerated -> RedrawBoard
-    this.inputEvents.diePlaced.subscribe(() => {
-      if (read(this.board, this.cursor.pos).content > 0) {
+    ev.diePlaced.subscribe((_) => {
+      const s = this.state
+
+      if (read(s.board, s.cursor.pos).content > 0) {
         // Invalid
       } else {
-        write(this.board, this.cursor.pos, {
-          content: this.nextNumber.number,
-          placedBy: this.turn.currentPlayer,
+        write(s.board, s.cursor.pos, {
+          content: s.nextNumber.number,
+          placedBy: s.turn.currentPlayer,
         })
-        this.nextNumber.generate(this.nextNumber)
-        this.turn.turnEnded(this.turn)
+        s.nextNumber.generate(s.nextNumber)
+        s.turn.turnEnded(s.turn)
         this.redrawDice()
       }
     })
@@ -71,15 +85,10 @@ export default class Demo extends Phaser.Scene {
   }
 
   create() {
-    this.turn = TurnState(this, 1)
-
-    this.checkerBoard = CheckerBoard(this, this.board)
-    this.gridLines = GridLines(this, 4)
+    const scene = this
 
     const SpriteBoard = (b: Board<Cell>) =>
       map(b, (t, p) => drawDice(this, t.content, p, t.placedBy))
-
-    this.spriteBoard = SpriteBoard(this.board)
 
     const TextBoard = (b: Board<Cell>) =>
       map(b, (n, p) => {
@@ -87,37 +96,62 @@ export default class Demo extends Phaser.Scene {
         txt.setFill('red')
         return txt
       })
-    this.texts = TextBoard(this.board)
 
-    this.cursor = Cursor(this)
-    this.nextNumber = NextNumber(this, Vec(530, 0))
+    const board = initBoard<Cell>({ content: 0, placedBy: null })
+    this.state = {
+      board,
+      cursor: Cursor(scene),
+      rendering: {
+        text: TextBoard(board),
+        checker: CheckerBoard(scene, board),
+        sprite: SpriteBoard(board),
+      },
+      nextNumber: NextNumber(scene, Vec(530, 0)),
+      turn: TurnState(scene, 1),
+      grid: GridLines(scene, 4),
+    }
+
+    const state = this.state
 
     const game = []
-    iter(this.checkerBoard, (a) => game.push(a))
-    iter(this.texts, (a) => game.push(a))
-    iter(this.spriteBoard, (a) => game.push(a))
-    game.push(this.nextNumber.obj)
-    game.push(this.cursor.obj)
-    game.push(this.gridLines.obj)
+    iter(state.rendering.checker, (a) => game.push(a))
+    iter(state.rendering.text, (a) => game.push(a))
+    iter(state.rendering.sprite, (a) => game.push(a))
+    game.push(state.nextNumber.obj)
+    game.push(state.cursor.obj)
+    game.push(state.grid.obj)
 
     let container = this.add.container(8, 32, game)
   }
 
   scoreZone(zone: Vec2d[]) {
+    const { board } = this.state
+
     return zone
-      .map((p) => read(this.board, p)) // grab values from board
+      .map((p) => read(board, p)) // grab values from board
       .reduce((accumulator, n) => accumulator + n.content, 0) // sum them all up
   }
 
   redrawDice() {
-    iter(this.spriteBoard, (t, p) => {
-      const n = this.board[p.x][p.y]
+    const {
+      board,
+      rendering: { sprite },
+    } = this.state
+
+    iter(sprite, (t, p) => {
+      const n = board[p.x][p.y]
       redrawDice(n.content, p, t, n.placedBy)
     })
   }
 
   update() {
-    ;[this.cursor, this.nextNumber].map(runUpdate)
-    iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y].content}`))
+    const {
+      board,
+      cursor,
+      nextNumber,
+      rendering: { text },
+    } = this.state
+    ;[cursor, nextNumber].map(runUpdate)
+    iter(text, (t, p) => (t.text = `${board[p.x][p.y].content}`))
   }
 }
