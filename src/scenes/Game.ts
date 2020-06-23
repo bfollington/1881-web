@@ -50,6 +50,7 @@ export default class Demo extends Phaser.Scene {
       } else {
         write(this.board, this.cursor.pos, this.nextNumber.number)
         this.nextNumber.generate(this.nextNumber)
+        this.turn.turnEnded(this.turn)
       }
     })
   }
