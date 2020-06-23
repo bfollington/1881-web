@@ -7,3 +7,4 @@ export const peach = 0xedb1ad
 export const bilious = 0x9fdc93
 export const bruised = 0x59599b
 export const jaundice = 0xffca5f
+export const grey = 0x828282
