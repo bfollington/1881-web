@@ -6,7 +6,7 @@ import { peach } from '../colors'
 export type NextNumberT = ReturnType<typeof NextNumber>
 
 function generateRandomInt(cap: number) {
-  return Math.floor(Math.random() * (cap - 1)) + 1
+  return Math.round(Math.random() * (cap - 1)) + 1
 }
 
 function update(c: NextNumberT) {

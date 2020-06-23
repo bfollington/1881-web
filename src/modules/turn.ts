@@ -2,10 +2,6 @@ import { Scene } from 'phaser'
 
 export type TurnStateT = ReturnType<typeof TurnState>
 
-function generateRandomInt(cap: number) {
-  return Math.floor(Math.random() * (cap - 1)) + 1
-}
-
 function turnEnded(t: TurnStateT) {
   t.currentPlayer = inverse(t.currentPlayer)
 }
