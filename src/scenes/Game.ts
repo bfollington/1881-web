@@ -74,7 +74,7 @@ export default class Demo extends Phaser.Scene {
   }
 
   create() {
-    this.turn = TurnState(this, 'player1')
+    this.turn = TurnState(this, 1)
 
     const CheckerBoard = (b: Board<Cell>) =>
       map(b, (n, p) => {
@@ -88,7 +88,7 @@ export default class Demo extends Phaser.Scene {
     this.checkerBoard = CheckerBoard(this.board)
     this.gridLines = GridLines(this, 4)
 
-    const SpriteBoard = (b: Board<Cell>) => map(b, (t, p) => drawDice(this, t.content, p))
+    const SpriteBoard = (b: Board<Cell>) => map(b, (t, p) => drawDice(this, t.content, p, t.placedBy))
 
     this.spriteBoard = SpriteBoard(this.board)
 
@@ -126,7 +126,7 @@ export default class Demo extends Phaser.Scene {
   redrawDice() {
     iter(this.spriteBoard, (t, p) => {
       const n = this.board[p.x][p.y]
-      redrawDice(n.content, p, t)
+      redrawDice(n.content, p, t, n.placedBy)
     })
   }
 

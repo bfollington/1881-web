@@ -2,21 +2,22 @@ import { Vec2d } from '../types'
 import { GRID } from '../const'
 import { plethoric, pallor } from '../colors'
 import { GameObjects, Scene } from 'phaser'
+import { colorForPlayer, Player } from './turn'
 
 const RADIUS = 8
 
-export function drawDice(s: Scene, n: number, p: Vec2d) {
+export function drawDice(s: Scene, n: number, p: Vec2d, player: Player = 0) {
   const sprt = s.add.graphics()
-  redrawDice(n, p, sprt)
+  redrawDice(n, p, sprt, player)
   return sprt
 }
 
-export function redrawDice(n: number, p: Vec2d, gfx: GameObjects.Graphics) {
+export function redrawDice(n: number, p: Vec2d, gfx: GameObjects.Graphics, player : Player = 0) {
   gfx.setPosition(p.x * GRID + 8, p.y * GRID + 8)
   gfx.clear()
 
   if (n != 0) {
-    gfx.fillStyle(plethoric)
+    gfx.fillStyle(colorForPlayer(player))
     gfx.fillRoundedRect(0, 0, GRID - RADIUS * 2, GRID - RADIUS * 2, RADIUS)
   }
   gfx.fillStyle(pallor)
