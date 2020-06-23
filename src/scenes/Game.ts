@@ -5,8 +5,10 @@ import { CursorT, Cursor } from '../modules/cursor'
 import { GRID } from '../const'
 import { anaemia, pallor, plethoric, peach } from '../colors'
 import { NextNumberT, NextNumber } from '../modules/nextNumber'
-import { TurnState } from '../modules/turn'
+import { TurnState, TurnStateT } from '../modules/turn'
 import { GridLines, GridLinesT } from '../modules/grid'
+import { drawDice, redrawDice } from '../modules/dice'
+import { Cell } from '../modules/cell'
 
 // Util
 interface Updateable<T> {
@@ -18,15 +20,14 @@ function runUpdate<T>(a: T & Updateable<T>) {
 }
 
 export default class Demo extends Phaser.Scene {
-  board = initBoard(0)
+  board = initBoard<Cell>({ content: 0, placedBy: null })
   cursor: CursorT = null
   nextNumber: NextNumberT = null
   texts: Board<GameObjects.Text>
   checkerBoard: Board<GameObjects.Graphics>
   spriteBoard: Board<GameObjects.Graphics>
-  gridLines: GameObjects.Graphics
   test: GameObjects.Image
-  turn: { turnEnded: (t: any) => void; currentPlayer: "player1" | "player2" }
+  turn: TurnStateT
   gridLines: GridLinesT
 
   constructor() {
@@ -35,24 +36,29 @@ export default class Demo extends Phaser.Scene {
 
   init() {
     //this.input.on('pointerup', () => (this.cursor.pos.x += 1))
-    var spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
-    var upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
-    var downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)
-    var leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
-    var rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
-   
-    
+    const spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    const upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
+    const downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)
+    const leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
+    const rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
+
     rightKey.on('down', () => (this.cursor.pos.x += 1))
     leftKey.on('down', () => (this.cursor.pos.x -= 1))
     upKey.on('down', () => (this.cursor.pos.y -= 1))
     downKey.on('down', () => (this.cursor.pos.y += 1))
     spaceBar.on('down', () => {
-      if (read(this.board, this.cursor.pos) > 0) {
+      // TODO: gross logic all in one place here, needs to be split up and have
+      // formal gameplay events modelled. i.e. CursorMoved and DicePlayed
+      if (read(this.board, this.cursor.pos).content > 0) {
         // Invalid
       } else {
-        write(this.board, this.cursor.pos, this.nextNumber.number)
+        write(this.board, this.cursor.pos, {
+          content: this.nextNumber.number,
+          placedBy: this.turn.currentPlayer,
+        })
         this.nextNumber.generate(this.nextNumber)
         this.turn.turnEnded(this.turn)
+        this.redrawDice()
       }
     })
   }
@@ -70,7 +76,7 @@ export default class Demo extends Phaser.Scene {
   create() {
     this.turn = TurnState(this, 'player1')
 
-    const CheckerBoard = (b: Board<number>) =>
+    const CheckerBoard = (b: Board<Cell>) =>
       map(b, (n, p) => {
         const rect = this.add.graphics()
         rect.setPosition(p.x * GRID, p.y * GRID)
@@ -82,37 +88,11 @@ export default class Demo extends Phaser.Scene {
     this.checkerBoard = CheckerBoard(this.board)
     this.gridLines = GridLines(this, 4)
 
-
-    const SpriteBoard = (b: Board<number>) =>
-      map(b, (n, p) => {
-        const sprt = this.add.graphics()
-        sprt.setPosition(p.x * GRID + 8, p.y * GRID + 8)
-        if (n != 0) {
-          sprt.fillStyle(plethoric)
-          sprt.fillRoundedRect(0, 0, 72, 72, 8)
-        }
-        sprt.fillStyle(pallor)
-        if (n == 1 || n == 3 || n == 5) {
-          sprt.fillCircle(36, 36, 8)
-        }
-        if (n == 2 || n == 3 || n == 4 || n == 5 || n == 6) {
-          sprt.fillCircle(16, 16, 8)
-          sprt.fillCircle(56, 56, 8)
-        }
-        if (n == 4 || n == 5 || n == 6) {
-          sprt.fillCircle(16, 56, 8)
-          sprt.fillCircle(56, 16, 8)
-        }
-        if (n == 6) {
-          sprt.fillCircle(56, 36, 8)
-          sprt.fillCircle(16, 36, 8)
-        }
-        return sprt
-      })
+    const SpriteBoard = (b: Board<Cell>) => map(b, (t, p) => drawDice(this, t.content, p))
 
     this.spriteBoard = SpriteBoard(this.board)
 
-    const TextBoard = (b: Board<number>) =>
+    const TextBoard = (b: Board<Cell>) =>
       map(b, (n, p) => {
         const txt = this.add.text(GRID * p.x, GRID * p.y, `${n}`)
         txt.setFill('red')
@@ -134,42 +114,24 @@ export default class Demo extends Phaser.Scene {
     game.push(this.cursor.obj)
     game.push(this.gridLines)
 
-    let container = this.add.container(8, 32, game)
+    // let container = this.add.container(8, 32, game)
   }
 
   scoreZone(zone: Vec2d[]) {
     return zone
       .map((p) => read(this.board, p)) // grab values from board
-      .reduce((accumulator, n) => accumulator + n) // sum them all up
+      .reduce((accumulator, n) => accumulator + n.content, 0) // sum them all up
+  }
+
+  redrawDice() {
+    iter(this.spriteBoard, (t, p) => {
+      const n = this.board[p.x][p.y]
+      redrawDice(n.content, p, t)
+    })
   }
 
   update() {
     ;[this.cursor, this.nextNumber].map(runUpdate)
-
-    iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y]}`))
-    iter(this.spriteBoard, (t, p) => {
-      var n = this.board[p.x][p.y]
-      if (n != 0) {
-        t.fillStyle(plethoric)
-        t.fillRoundedRect(0, 0, 72, 72, 8)
-      }
-
-      t.fillStyle(pallor)
-      if (n == 1 || n == 3 || n == 5) {
-        t.fillCircle(36, 36, 8)
-      }
-      if (n == 2 || n == 3 || n == 4 || n == 5 || n == 6) {
-        t.fillCircle(16, 16, 8)
-        t.fillCircle(56, 56, 8)
-      }
-      if (n == 4 || n == 5 || n == 6) {
-        t.fillCircle(16, 56, 8)
-        t.fillCircle(56, 16, 8)
-      }
-      if (n == 6) {
-        t.fillCircle(56, 36, 8)
-        t.fillCircle(16, 36, 8)
-      }
-    })
+    iter(this.texts, (t, p) => (t.text = `${this.board[p.x][p.y].content}`))
   }
 }

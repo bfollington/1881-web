@@ -10,8 +10,8 @@ function turnEnded(t: TurnStateT) {
   t.currentPlayer = inverse(t.currentPlayer)
 }
 
-type Player = 'player1' | 'player2'
-function inverse(p: Player) {
+export type Player = 'player1' | 'player2'
+export function inverse(p: Player) {
   switch (p) {
     case 'player1':
       return 'player2'
