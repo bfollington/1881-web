@@ -98,7 +98,7 @@ export default class Demo extends Phaser.Scene {
         checker: CheckerBoard(scene, board),
         sprite: SpriteBoard(board),
       },
-      nextNumber: NextNumber(scene, Vec(530, 0)),
+      nextNumber: NextNumber(scene, Vec(548, 0)),
       turn: TurnState(scene, 1),
       grid: GridLines(scene, 4),
     }

@@ -14,7 +14,7 @@ function generateRandomInt(cap: number) {
 function update(c: NextNumberT, t:TurnStateT) {
   c.obj.setPosition(c.pos.x, c.pos.y)
   c.obj.text = `Next: ${c.number}`
-  drawCustomDie(c.number, c.pos.x + 20, c.pos.y + 54, c.img, colorForPlayer(t.currentPlayer))
+  drawCustomDie(c.number, c.pos.x + 6, c.pos.y + 54, c.img, colorForPlayer(t.currentPlayer))
 }
 
 function generate(c: NextNumberT) {
