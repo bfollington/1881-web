@@ -1,14 +1,15 @@
-import { Vec, Vec2d } from '../types'
-import { GameObjects, Scene } from 'phaser'
-import { Board, initBoard, zones, map, iter, read, write } from '../modules/board'
-import { CursorT, Cursor } from '../modules/cursor'
+import { GameObjects } from 'phaser'
 import { GRID } from '../const'
-import { anaemia, pallor, plethoric, peach } from '../colors'
-import { NextNumberT, NextNumber } from '../modules/nextNumber'
-import { TurnState, TurnStateT } from '../modules/turn'
-import { GridLines, GridLinesT } from '../modules/grid'
-import { drawDice, redrawDice } from '../modules/dice'
+import { Board, initBoard, iter, map, read, write } from '../modules/board'
 import { Cell } from '../modules/cell'
+import { CheckerBoard } from '../modules/checkered'
+import { Cursor, CursorT } from '../modules/cursor'
+import { drawDice, redrawDice } from '../modules/dice'
+import { GridLines, GridLinesT } from '../modules/grid'
+import { GameInput, initEvents } from '../modules/initEvents'
+import { NextNumber, NextNumberT } from '../modules/nextNumber'
+import { TurnState, TurnStateT } from '../modules/turn'
+import { Vec, Vec2d } from '../types'
 
 // Util
 interface Updateable<T> {
@@ -29,26 +30,22 @@ export default class Demo extends Phaser.Scene {
   test: GameObjects.Image
   turn: TurnStateT
   gridLines: GridLinesT
+  inputEvents: GameInput
 
   constructor() {
     super('GameScene')
   }
 
   init() {
-    //this.input.on('pointerup', () => (this.cursor.pos.x += 1))
-    const spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
-    const upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
-    const downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN)
-    const leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
-    const rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
+    this.inputEvents = initEvents(this)
 
-    rightKey.on('down', () => (this.cursor.pos.x += 1))
-    leftKey.on('down', () => (this.cursor.pos.x -= 1))
-    upKey.on('down', () => (this.cursor.pos.y -= 1))
-    downKey.on('down', () => (this.cursor.pos.y += 1))
-    spaceBar.on('down', () => {
-      // TODO: gross logic all in one place here, needs to be split up and have
-      // formal gameplay events modelled. i.e. CursorMoved and DicePlayed
+    this.inputEvents.cursorMoved.subscribe((c) => {
+      this.cursor.pos = this.cursor.pos.add(c)
+    })
+
+    // TODO: gross logic all in one place here, needs to be split up further
+    // Ideal event chain: DiePlaced -> TurnEnded -> NextNumberGenerated -> RedrawBoard
+    this.inputEvents.diePlaced.subscribe(() => {
       if (read(this.board, this.cursor.pos).content > 0) {
         // Invalid
       } else {
@@ -76,19 +73,11 @@ export default class Demo extends Phaser.Scene {
   create() {
     this.turn = TurnState(this, 1)
 
-    const CheckerBoard = (b: Board<Cell>) =>
-      map(b, (n, p) => {
-        const rect = this.add.graphics()
-        rect.setPosition(p.x * GRID, p.y * GRID)
-        rect.fillStyle((p.x + p.y) % 2 === 0 ? anaemia : pallor)
-        rect.fillRect(0, 0, GRID, GRID)
-        return rect
-      })
-
-    this.checkerBoard = CheckerBoard(this.board)
+    this.checkerBoard = CheckerBoard(this, this.board)
     this.gridLines = GridLines(this, 4)
 
-    const SpriteBoard = (b: Board<Cell>) => map(b, (t, p) => drawDice(this, t.content, p, t.placedBy))
+    const SpriteBoard = (b: Board<Cell>) =>
+      map(b, (t, p) => drawDice(this, t.content, p, t.placedBy))
 
     this.spriteBoard = SpriteBoard(this.board)
 
@@ -103,18 +92,15 @@ export default class Demo extends Phaser.Scene {
     this.cursor = Cursor(this)
     this.nextNumber = NextNumber(this, Vec(530, 0))
 
-    const nums = [1, 2, 3, 4, 5, 6]
-    //nums.map((i) => this.add.image(596, 50 + i * 80, `dice${i}`))
-
     const game = []
     iter(this.checkerBoard, (a) => game.push(a))
     iter(this.texts, (a) => game.push(a))
     iter(this.spriteBoard, (a) => game.push(a))
     game.push(this.nextNumber.obj)
     game.push(this.cursor.obj)
-    game.push(this.gridLines)
+    game.push(this.gridLines.obj)
 
-    // let container = this.add.container(8, 32, game)
+    let container = this.add.container(8, 32, game)
   }
 
   scoreZone(zone: Vec2d[]) {
