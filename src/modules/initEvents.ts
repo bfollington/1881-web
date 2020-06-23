@@ -1,7 +1,5 @@
 import { Scene } from 'phaser'
-import { Vec2d, Vec } from '../types'
-import { CursorT } from './cursor'
-import { TurnStateT } from './turn'
+import { Vec, Vec2d } from '../types'
 
 type InputEventListener<T> = (t: T) => void
 type Unsubscribe = () => void
