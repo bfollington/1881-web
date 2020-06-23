@@ -3,10 +3,6 @@ import {plethoric, cyanosis, congested, bilious, grey} from '../colors'
 
 export type TurnStateT = ReturnType<typeof TurnState>
 
-function generateRandomInt(cap: number) {
-  return Math.floor(Math.random() * (cap - 1)) + 1
-}
-
 function turnEnded(t: TurnStateT) {
   console.log(t.currentPlayer)
   t.currentPlayer = advance(t.currentPlayer, t)
