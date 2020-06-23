@@ -10,6 +10,7 @@ import { GameInput, initEvents } from '../modules/initEvents'
 import { NextNumber, NextNumberT } from '../modules/nextNumber'
 import { TurnState, TurnStateT } from '../modules/turn'
 import { Vec, Vec2d } from '../types'
+import { peach } from '../colors'
 
 // Util
 interface Updateable<T> {
@@ -23,7 +24,6 @@ function runUpdate<T>(a: T & Updateable<T>) {
 export type GameState = {
   board: Board<Cell>
   rendering: {
-    text: Board<GameObjects.Text>
     checker: Board<GameObjects.Graphics>
     sprite: Board<GameObjects.Graphics>
   }
@@ -90,19 +90,11 @@ export default class Demo extends Phaser.Scene {
     const SpriteBoard = (b: Board<Cell>) =>
       map(b, (t, p) => drawDice(this, t.content, p, t.placedBy))
 
-    const TextBoard = (b: Board<Cell>) =>
-      map(b, (n, p) => {
-        const txt = this.add.text(GRID * p.x, GRID * p.y, `${n}`)
-        txt.setFill('red')
-        return txt
-      })
-
     const board = initBoard<Cell>({ content: 0, placedBy: null })
     this.state = {
       board,
       cursor: Cursor(scene),
       rendering: {
-        text: TextBoard(board),
         checker: CheckerBoard(scene, board),
         sprite: SpriteBoard(board),
       },
@@ -115,7 +107,6 @@ export default class Demo extends Phaser.Scene {
 
     const game = []
     iter(state.rendering.checker, (a) => game.push(a))
-    iter(state.rendering.text, (a) => game.push(a))
     iter(state.rendering.sprite, (a) => game.push(a))
     game.push(state.nextNumber.obj)
     game.push(state.cursor.obj)
@@ -150,10 +141,8 @@ export default class Demo extends Phaser.Scene {
       turn,
       cursor,
       nextNumber,
-      rendering: { text },
     } = this.state
     runUpdate(cursor)
     nextNumber.update(nextNumber, turn)
-    iter(text, (t, p) => (t.text = `${board[p.x][p.y].content}`))
   }
 }
